@@ -1,6 +1,6 @@
 const adminauth=(req,res,next)=>{
     let user='admin';
-    if(user==='admin'){
+    if(user==='adminn'){
         next();
     }
     else{
