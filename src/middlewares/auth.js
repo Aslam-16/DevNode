@@ -1,3 +1,5 @@
+const jwt = require("jsonwebtoken");
+const User = require("../model/users");
 const adminauth=(req,res,next)=>{
     let user='admin';
     if(user==='adminn'){
@@ -8,13 +10,19 @@ const adminauth=(req,res,next)=>{
     }
 }
 
-const userauth=(req,res,next)=>{
-    let user='user';
-    if(user==='usere'){
+const userauth=async(req,res,next)=>{
+    try{
+        const token=req.cookies.token;
+        if(!token) throw new Error('unauthorized user');
+        const decoded=jwt.verify(token,'devnodejwtsecret');
+        const user=await User.findById(decoded.id);
+        if(!user) throw new Error('user not found');
+        req.user=user;
+        //res.send("from user auth middleware");
+
         next();
-    }
-    else{
-        res.send('unauthorized user');
+    }catch(err){
+        res.status(500).send("error in user authentication "+err);
     }
 }
 

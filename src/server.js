@@ -6,6 +6,10 @@ const { adminauth, userauth, fieldchecker } = require("./middlewares/auth");
 const User = require("./model/users");
 const bcrypt = require("bcrypt");
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const cookieParser = require("cookie-parser");
+
+app.use(cookieParser());
 //to parse json data in request body and allow any post request
 // to accept the incoming req body
 
@@ -57,12 +61,20 @@ app.post("/login", async (req, res) => {
     if (!user) throw new Error("Invalid credentials");
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new Error("Invalid credentials");
+    const token=jwt.sign({id:user._id},'devnodejwtsecret');
+    res.cookie('token',token);
     res.send("user logged in successfully");
   } catch (err) {
     res.status(500).send("error in user login " + err);
   }
 });
-
+app.get('/getprofile',userauth,async(req,res)=>{
+  try{
+    res.send(req.user);
+  }catch(err){  
+    res.status(500).send("error in fetching profile "+err);
+  }
+});
 app.get("/listusers", async (req, res) => {
   try {
     const users = await User.find();

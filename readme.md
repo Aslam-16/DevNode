@@ -8,3 +8,7 @@
 🟢sanitize everything on the req.body
 🟢have a api level validation if the any field is getting transformed before putting the db.
 🟢schema level is good for data which are getting into without any transformation.
+JWT
+    - install cookie-parser,jwt
+    - use jwtsign at the login page and send the cook as response
+    - while accessing any protected route, verify the jwt token from cookie and get the userinfo to proceed the operation of that route
