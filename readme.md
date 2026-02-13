@@ -6,3 +6,5 @@
 🟢in post method of create() or save, we don't need to pass runvalidator, since it is a auto taken. but for any model method like findbyidupdate post method, we need to pass 3rd parameter as runvalidator as true.
 🟢should restrict the email or password update by filtering only the updateable fields and update.
 🟢sanitize everything on the req.body
+🟢have a api level validation if the any field is getting transformed before putting the db.
+🟢schema level is good for data which are getting into without any transformation.
