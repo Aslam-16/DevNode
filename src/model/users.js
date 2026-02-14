@@ -1,5 +1,7 @@
 const mongoose=require('mongoose');
 const validator=require('validator');
+const bcrypt=require('bcrypt');
+const jwt=require('jsonwebtoken');
 
 const userSchema=new mongoose.Schema({
     firstName:{
@@ -67,6 +69,19 @@ const userSchema=new mongoose.Schema({
     },
 },
 {timestamps:true});
+
+userSchema.methods.comparePassword=async function (password){
+    const user=this;//refers to the document on which this method is called
+    console.log({user,password})
+    const isMatch = await bcrypt.compare(password, user.password);
+    return isMatch;
+}
+
+userSchema.methods.getJWT=function(){
+    const user=this;
+    const token=jwt.sign({id:user._id},'devnodejwtsecret',{expiresIn:'3m'});
+    return token;
+}
 
 const User=mongoose.model('User',userSchema);
 

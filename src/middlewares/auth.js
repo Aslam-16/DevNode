@@ -13,6 +13,7 @@ const adminauth=(req,res,next)=>{
 const userauth=async(req,res,next)=>{
     try{
         const token=req.cookies.token;
+        console.log("token from userauth middleware",token);
         if(!token) throw new Error('unauthorized user');
         const decoded=jwt.verify(token,'devnodejwtsecret');
         const user=await User.findById(decoded.id);

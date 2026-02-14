@@ -57,22 +57,28 @@ app.post("/login", async (req, res) => {
     }
     if (!email) throw new Error("email is required");
     if (!password) throw new Error("password is required");
+
     const user = await User.findOne({ email });
+
     if (!user) throw new Error("Invalid credentials");
-    const isMatch = await bcrypt.compare(password, user.password);
+    //through user schema method
+    const isMatch = await user.comparePassword(password);
+
     if (!isMatch) throw new Error("Invalid credentials");
-    const token=jwt.sign({id:user._id},'devnodejwtsecret');
-    res.cookie('token',token);
+
+    const token = await user.getJWT();
+    res.cookie("token", token);
     res.send("user logged in successfully");
+    
   } catch (err) {
     res.status(500).send("error in user login " + err);
   }
 });
-app.get('/getprofile',userauth,async(req,res)=>{
-  try{
+app.get("/getprofile", userauth, async (req, res) => {
+  try {
     res.send(req.user);
-  }catch(err){  
-    res.status(500).send("error in fetching profile "+err);
+  } catch (err) {
+    res.status(500).send("error in fetching profile " + err);
   }
 });
 app.get("/listusers", async (req, res) => {
