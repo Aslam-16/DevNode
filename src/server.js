@@ -15,72 +15,10 @@ app.use(cookieParser());
 
 app.use(express.json());
 
-app.use("/", (err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send("Something broke!");
-});
+app.use("/", require("./routers/authrouter"));
+app.use("/", require("./routers/profilerouter"));
+app.use("/", require("./routers/requestrouter"));
 
-app.use("/admin", adminauth);
-//app.use('/user',userauth);
-
-app.get("/admin/home", (req, res) => {
-  res.send("from admin home");
-});
-
-app.get("/user/home", userauth, (req, res) => {
-  res.send("from user home");
-});
-
-app.post("/signup", async (req, res) => {
-  const userdata = req.body;
-  try {
-    if (!userdata.password) throw new Error("password is required");
-
-    if (userdata.password && userdata.password.length < 6)
-      throw new Error("password must be at least 6 characters long");
-
-    const passwordhash = await bcrypt.hash(userdata.password, 10);
-    const user = new User({ ...userdata, password: passwordhash });
-    await user.save();
-    res.send("user registered successfully");
-  } catch (err) {
-    res.status(500).send("error in user registration " + err);
-  }
-  console.log(req.body);
-});
-
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    if (email) {
-      if (!validator.isEmail(email)) throw new Error("not a valid email");
-    }
-    if (!email) throw new Error("email is required");
-    if (!password) throw new Error("password is required");
-
-    const user = await User.findOne({ email });
-
-    if (!user) throw new Error("Invalid credentials");
-    //through user schema method
-    const isMatch = await user.comparePassword(password);
-
-    if (!isMatch) throw new Error("Invalid credentials");
-
-    const token = await user.getJWT();
-    res.cookie("token", token);
-    res.send("user logged in successfully");
-    
-  } catch (err) {
-    res.status(500).send("error in user login " + err);
-  }
-});
-app.get("/getprofile", userauth, async (req, res) => {
-  try {
-    res.send(req.user);
-  } catch (err) {
-    res.status(500).send("error in fetching profile " + err);
-  }
-});
 app.get("/listusers", async (req, res) => {
   try {
     const users = await User.find();
@@ -100,32 +38,7 @@ app.delete("/deleteuser", async (req, res) => {
     res.status(500).send("error in deleting user");
   }
 });
-//patch method will update only the fields provided in the request body and keep the other fields unchanged*
-app.patch("/updateuser", async (req, res) => {
-  try {
-    const { id, ...updateData } = req.body;
-    const ALLOWED_FIELDS = [
-      "firstname",
-      "lastname",
-      "age",
-      "gender",
-      "photourl",
-      "skills",
-    ];
 
-    const { isValid, notallowed } = fieldchecker(updateData, ALLOWED_FIELDS);
-    if (!isValid)
-      throw new Error("invalid fields to update data " + notallowed);
-    const user = await User.findByIdAndUpdate(id, updateData, {
-      returnDocument: "after",
-      runValidators: true,
-    });
-    console.log("kk", user);
-    res.send("user updated successfully");
-  } catch (err) {
-    res.status(500).send("error in updating user " + err);
-  }
-});
 //put method will replace the entire document with the new data provided in the request body
 // app.put('/updateuser',async(req,res)=>{
 //     try{

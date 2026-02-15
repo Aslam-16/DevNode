@@ -6,16 +6,16 @@ const jwt=require('jsonwebtoken');
 const userSchema=new mongoose.Schema({
     firstName:{
         type:String,
-        minlength:3,
-        required:true
+        minlength:[3,'firstname must be at least 3 characters long'],
+        required:[true,'firstname is required']
     },
     lastName:{
         type:String
     },
     email:{
         type:String,
-        required:true,
-        unique:true,
+        required:[true,'email is required'],
+        unique:[true,'email already exists'],
         lowercase:true,
         validate:{
         validator:function(value){
@@ -37,7 +37,7 @@ const userSchema=new mongoose.Schema({
     },
     age:{
         type:Number,
-        min:18,
+        min:[18,'age must be at least 18'],
     },
     gender:{
         type:String,
@@ -79,7 +79,7 @@ userSchema.methods.comparePassword=async function (password){
 
 userSchema.methods.getJWT=function(){
     const user=this;
-    const token=jwt.sign({id:user._id},'devnodejwtsecret',{expiresIn:'3m'});
+    const token=jwt.sign({id:user._id},'devnodejwtsecret',{expiresIn:'5m'});
     return token;
 }
 
