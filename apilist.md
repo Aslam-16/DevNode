@@ -13,10 +13,10 @@ POST /profile/changepassword - done
 
 ## MAIN APIs
 ## user/request routes
-GET /user/feed - done
-GET /user/requestreceived
-GET /user/requestsent
-POST /connection/interested/:userid
-POST /connection/ingored/:userid
-POST /connection/accepted/:requestid
-POST /connection/rejected/:requestid
+GET /user/feed - pending
+GET /user/requestreceived - done
+GET /user/requestsent -done 
+POST /connection/interested/:userid - done
+POST /connection/ingored/:userid - done
+POST /connection/accepted/:requestid - done
+POST /connection/rejected/:requestid - done

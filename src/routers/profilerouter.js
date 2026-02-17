@@ -19,13 +19,19 @@ router.patch("/updateuser",userauth, async (req, res) => {
     const {_id:id}=req.user;
     const  updateData  = req.body;
     const ALLOWED_FIELDS = [
-      "firstname",
-      "lastname",
+      "firstName",
+      "lastName",
       "age",
       "gender",
       "photourl",
       "skills",
     ];
+    // let updateableFields=ALLOWED_FIELDS.reduce((acc, field)=>{
+    //   if(updateData[field]) acc[field]=updateData[field];
+    //   return acc;
+    // }, {});
+    
+    console.log("updateableFields", updateableFields);
 
     const { isValid, notallowed } = fieldchecker(updateData, ALLOWED_FIELDS);
     if (!isValid)
