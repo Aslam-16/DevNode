@@ -7,9 +7,9 @@ const bcrypt = require("bcrypt");
 
 router.get("/getprofile", userauth, async (req, res) => {
   try {
-    res.send(req.user);
+    res.json({success:true,profile:req.user});
   } catch (err) {
-    res.status(500).send("error in fetching profile " + err);
+    res.status(500).json({success:false,message:"error in fetching profile " + err});
   }
 });
 
@@ -35,15 +35,15 @@ router.patch("/updateuser",userauth, async (req, res) => {
 
     const { isValid, notallowed } = fieldchecker(updateData, ALLOWED_FIELDS);
     if (!isValid)
-      throw new Error("invalid fields to update data " + notallowed);
+      return res.status(400).json({ success: false, message: "invalid fields to update user data " + notallowed });
     const user = await User.findByIdAndUpdate(id, updateData, {
       returnDocument: "after",
       runValidators: true,
     });
     console.log("kk", user);
-    res.send({message:"user updated successfully", user});
+    res.json({ success: true, message: "user updated successfully", user });
   } catch (err) {
-    res.status(500).send("error in updating user " + err);
+    res.status(500).json({success:false,message:"error in updating user " + err});
   }
 });
 
@@ -56,19 +56,19 @@ router.patch("/changepassword", userauth, async (req, res) => {
 
 
     const { isValid, notallowed } = fieldchecker(updateData, ALLOWED_FIELDS);
-    if(!isValid) throw new Error("invalid fields to update data " + notallowed);
+    if(!isValid) return res.status(400).json({success:false,message:"invalid fields to update user data " + notallowed});
     const isMatch = await bcrypt.compare(oldpassword, req.user.password);
 
-    if (!isMatch) throw new Error("Incorrect password");
-    if(updateData.password && updateData.password.length<6) throw new Error("password must be at least 6 characters long");
+    if (!isMatch) return res.status(400).json({ success: false, message: "old password is incorrect" });
+    if(updateData.password && updateData.password.length<6) return res.status(400).json({success:false,message:"password must be at least 6 characters long"});
 
     const passwordhash = await bcrypt.hash(updateData.password, 10);
     loggedInUser.password=passwordhash;
     await loggedInUser.save();
-    res.send({message:"password changed successfully"});
+    res.json({success:true,message:"password changed successfully"});
 
   } catch (err) {
-    res.status(500).send("error in changing password " + err);
+    res.status(500).json({success:false,message:"error in changing password " + err});
   }
 });
 

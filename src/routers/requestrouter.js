@@ -5,9 +5,6 @@ const router = express.Router();
 const User = require('../model/users');
 const Request=require('../model/requests');
 
-router.get('/feed', (req, res) => {
-    res.send("this is the feed page");
-});
 
 router.post('/connectionrequest/:status/:userId', userauth,async(req,res)=>{
 
@@ -15,20 +12,20 @@ router.post('/connectionrequest/:status/:userId', userauth,async(req,res)=>{
         const status=req.params.status;
         const userId=req.params.userId;
         const ALLOWED_STATUS=["interested","ignored"];
-        if(!ALLOWED_STATUS.includes(status)) throw new Error("invalid status "+status);
-        if(!mongoose.Types.ObjectId.isValid(userId)) throw new Error("invalid user id format");
-        if(userId===req.user._id.toString()) throw new Error("you cannot send connection request to yourself");
+        if(!ALLOWED_STATUS.includes(status)) return res.json({success:false,message:"invalid status "+status});
+        if(!mongoose.Types.ObjectId.isValid(userId)) return res.json({success:false,message:"invalid user id format"});
+        if(userId===req.user._id.toString()) return res.json({success:false,message:"you cannot send connection request to yourself"});
         const isuserexist=await User.findById(userId);
         console.log("isuserexist",isuserexist);
-        if(!isuserexist) throw new Error("user not found with id "+userId);
+        if(!isuserexist) return res.json({success:false,message:"user not found with id "+userId});
         const isrequestalreadyexist=await Request.findOne({$or:[{fromUserId:req.user._id,toUserId:userId},{fromUserId:userId,toUserId:req.user._id}]});
-        if(isrequestalreadyexist) throw new Error("request already exist with this user");
+        if(isrequestalreadyexist) return res.json({success:false,message:"request already exist with this user"});
         const request=new Request({fromUserId:req.user._id,toUserId:userId,status});
         await request.save();
-        res.send("connection request sent successfully", request);
+        res.json({success:true,message:"connection request sent successfully",request});
     }
     catch(err){
-        res.status(500).send("error in sending connection request "+err);
+        res.status(500).json({success:false,message:"error in sending connection request "+err});
     }
 })
 
@@ -37,38 +34,55 @@ router.post('/respondtorequest/:requestId/:status', userauth,async(req,res)=>{
         const requestId=req.params.requestId;
         const status=req.params.status;
         const ALLOWED_STATUS=["accepted","rejected"];
-        if(!ALLOWED_STATUS.includes(status)) throw new Error("invalid status "+status);
-        if(!mongoose.Types.ObjectId.isValid(requestId)) throw new Error("invalid request id format");
+        if(!ALLOWED_STATUS.includes(status)) return res.json({success:false,message:"invalid status "+status});
+        if(!mongoose.Types.ObjectId.isValid(requestId)) return res.json({success:false,message:"invalid request id format"});
         const requestInfo=await Request.findOne({_id:requestId,status:"interested"});
-        if(!requestInfo) throw new Error("request not found with id "+requestId);
-        if(requestInfo.toUserId.toString()!==req.user._id.toString()) throw new Error("you are not authorized to update this request");
-        if(requestInfo.status===status) throw new Error("request is already updated to  "+status);
+        if(!requestInfo) return res.json({success:false,message:"request not found with id "+requestId});
+        if(requestInfo.toUserId.toString()!==req.user._id.toString()) return res.json({success:false,message:"you are not authorized to update this request"});
+        if(requestInfo.status===status) return res.json({success:false,message:"request is already updated to  "+status});
         requestInfo.status=status;
         await requestInfo.save();
-        res.send("request updated successfully", requestInfo);
+        res.json({success:true,message:"request updated successfully",requestInfo});
 
     } catch (error) {
-        res.status(500).send("error in updating request "+error);
+        res.status(500).json({success:false,message:"error in updating request "+error});
     }
 });
 
 router.get('/connection/requestreceived', userauth,async(req,res)=>{
     try {
         const requests=await Request.find({toUserId:req.user._id,status:"interested"}).populate("fromUserId");
-        res.send(requests);
+        res.json({success:true,requests});
     } catch (error) {
-        res.status(500).send("error in getting request received "+error);
+        res.status(500).json({success:false,message:"error in getting request received "+error});
     }
 });
 
 router.get('/connections', userauth,async(req,res)=>{
     try{
         const connections=await Request.find({$or:[{fromUserId:req.user._id,status:"accepted"},{toUserId:req.user._id,status:"accepted"}]}).populate("fromUserId","firstName email").populate("toUserId","firstName email");
-        if(connections.length===0) throw new Error("no connections found");
-        res.send(connections);
+        if(connections.length===0) return res.json({success:false,message:"no connections found"});
+        res.json({success:true,connections});
     }
     catch(error){
-        res.status(500).send("error in getting connections "+error);
+        res.status(500).json({success:false,message:"error in getting connections "+error});
+    }
+});
+
+router.get('/feed',userauth,async (req,res)=>{
+    try{
+        const connections=await Request.find({$or:[{fromUserId:req.user._id,status:"accepted"},{toUserId:req.user._id,status:"accepted"}]}).select("fromUserId toUserId").lean();
+        const hideUsers=new Set();
+        hideUsers.add(req.user._id.toString());
+        connections.forEach((connection)=>{
+            hideUsers.add(connection.fromUserId.toString());
+            hideUsers.add(connection.toUserId.toString());
+        });
+        const feedUsers=await User.find({_id:{$nin:Array.from(hideUsers)}}).select("firstName email").lean();
+        res.json({success:true,feed:feedUsers});
+    }
+    catch(error){
+        res.status(500).json({success:false,message:"error in getting feed "+error});
     }
 });
 

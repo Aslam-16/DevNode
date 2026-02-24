@@ -79,7 +79,7 @@ userSchema.methods.comparePassword=async function (password){
 
 userSchema.methods.getJWT=function(){
     const user=this;
-    const token=jwt.sign({id:user._id},'devnodejwtsecret',{expiresIn:'5m'});
+    const token=jwt.sign({id:user._id},process.env.JWT_SECRET,{expiresIn:'5m'});
     return token;
 }
 

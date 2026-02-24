@@ -11,20 +11,20 @@ router.post("/signup", async (req, res) => {
       if (!validator.isEmail(userdata.email))
         throw new Error("not a valid email");
       const existinguser = await User.findOne({ email: userdata.email });
-      if (existinguser) throw new Error("email already exists");
+      if (existinguser) return res.status(400).json({ success: false, message: "email already exist with this email id" });
     }
 
-    if (!userdata.password) throw new Error("password is required");
+    if (!userdata.password) return res.status(400).json({ success: false, message: "password is required" });
 
     if (userdata.password && userdata.password.length < 6)
-      throw new Error("password must be at least 6 characters long");
+      return res.status(400).json({ success: false, message: "password must be at least 6 characters long" });
 
     const passwordhash = await bcrypt.hash(userdata.password, 10);
     const user = new User({ ...userdata, password: passwordhash });
     await user.save();
-    res.send("user registered successfully");
+    res.json({ success: true, message: "user registered successfully" });
   } catch (err) {
-    res.status(500).send("error in user registration " + err);
+    res.status(500).json({ success: false, message: "error in user registration " + err });
   }
   console.log(req.body);
 });
@@ -33,30 +33,30 @@ router.post("/login", async (req, res) => {
   const { email, password } = req.body;
   try {
     if (email) {
-      if (!validator.isEmail(email)) throw new Error("not a valid email");
+      if (!validator.isEmail(email)) return res.status(400).json({ success: false, message: "not a valid email" });
     }
-    if (!email) throw new Error("email is required");
-    if (!password) throw new Error("password is required");
+    if (!email) return res.status(400).json({ success: false, message: "email is required" });
+    if (!password) return res.status(400).json({ success: false, message: "password is required" });
 
     const user = await User.findOne({ email });
 
-    if (!user) throw new Error("Invalid credentials");
+    if (!user) return res.status(400).json({ success: false, message: "Invalid credentials" });
     //through user schema method
     const isMatch = await user.comparePassword(password);
 
-    if (!isMatch) throw new Error("Invalid credentials");
+    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
 
     const token = await user.getJWT();
     res.cookie("token", token);
-    res.send("user logged in successfully");
+    res.json({ success: true, message: "user logged in successfully"});
   } catch (err) {
-    res.status(500).send("error in user login " + err);
+    res.status(500).json({ success: false, message: "error in user login " + err });
   }
 });
 
 router.post("/logout", (req, res) => {
   res.clearCookie("token");
-  res.send("user logged out successfully");
+  res.json({ success: true, message: "user logged out successfully" });
 });
 
 

@@ -1,6 +1,6 @@
+require("dotenv").config();
 const express = require("express");
 const app = express();
-const port = 1616;
 const connectDB = require("./config/db");
 const { adminauth, userauth, fieldchecker } = require("./middlewares/auth");
 const User = require("./model/users");
@@ -8,12 +8,22 @@ const bcrypt = require("bcrypt");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const morgan = require("morgan");
+const rateLimit = require("express-rate-limit");
+const port = process.env.PORT;
 
 app.use(cookieParser());
 //to parse json data in request body and allow any post request
-// to accept the incoming req body
-
+// to accept the incoming req body as json data and make it available in req.body for further processing in the route handlers
 app.use(express.json());
+//to log the incoming requests and their details in the console for debugging and monitoring purposes
+app.use(morgan("dev"));
+//to limit the number of requests from a single IP address to prevent brute force attacks and DDoS attacks
+const limiter = rateLimit({
+  windowMs: 2 * 60 * 1000, // 15 minutes
+  max: 10, // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
 
 app.use("/", require("./routers/authrouter"));
 app.use("/", require("./routers/profilerouter"));

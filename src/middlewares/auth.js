@@ -14,16 +14,16 @@ const userauth=async(req,res,next)=>{
     try{
         const token=req.cookies.token;
         console.log("token from userauth middleware",token);
-        if(!token) throw new Error('unauthorized user');
-        const decoded=jwt.verify(token,'devnodejwtsecret');
+        if(!token) return res.status(401).json({success:false,message:"access denied, token not found"});
+        const decoded=jwt.verify(token,process.env.JWT_SECRET);
         const user=await User.findById(decoded.id);
-        if(!user) throw new Error('user not found');
+        if(!user) return res.status(400).json({success:false,message:"user not found"});
         req.user=user;
         //res.send("from user auth middleware");
 
         next();
     }catch(err){
-        res.status(500).send("error in user authentication "+err);
+        res.status(500).json({success:false,message:"error in user authentication "+err});
     }
 }
 
