@@ -16,7 +16,7 @@ const userauth=async(req,res,next)=>{
         console.log("token from userauth middleware",token);
         if(!token) return res.status(401).json({success:false,message:"access denied, token not found"});
         const decoded=jwt.verify(token,process.env.JWT_SECRET);
-        const user=await User.findById(decoded.id);
+        const user=await User.findById(decoded.id).select("-password -__v -createdAt -updatedAt");
         if(!user) return res.status(400).json({success:false,message:"user not found"});
         req.user=user;
         //res.send("from user auth middleware");

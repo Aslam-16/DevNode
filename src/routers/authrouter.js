@@ -47,7 +47,10 @@ router.post("/login", async (req, res) => {
     if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
 
     const token = await user.getJWT();
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
     res.json({ success: true, message: "user logged in successfully"});
   } catch (err) {
     res.status(500).json({ success: false, message: "error in user login " + err });

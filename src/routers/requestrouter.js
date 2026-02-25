@@ -51,18 +51,29 @@ router.post('/respondtorequest/:requestId/:status', userauth,async(req,res)=>{
 
 router.get('/connection/requestreceived', userauth,async(req,res)=>{
     try {
-        const requests=await Request.find({toUserId:req.user._id,status:"interested"}).populate("fromUserId");
+        const requests=await Request.find({toUserId:req.user._id,status:"interested"}).populate("fromUserId","firstName email");
         res.json({success:true,requests});
     } catch (error) {
         res.status(500).json({success:false,message:"error in getting request received "+error});
     }
 });
 
+router.get('/connection/requestsent', userauth,async(req,res)=>{
+    try {
+        const requests=await Request.find({fromUserId:req.user._id,status:"interested"}).populate("toUserId","firstName email");
+        res.json({success:true,requests});
+    } catch (error) {
+        res.status(500).json({success:false,message:"error in getting request sent "+error});
+    }
+});
+
 router.get('/connections', userauth,async(req,res)=>{
     try{
-        const connections=await Request.find({$or:[{fromUserId:req.user._id,status:"accepted"},{toUserId:req.user._id,status:"accepted"}]}).populate("fromUserId","firstName email").populate("toUserId","firstName email");
-        if(connections.length===0) return res.json({success:false,message:"no connections found"});
-        res.json({success:true,connections});
+        const connections=await Request.find({fromUserId:req.user._id,status:"accepted"}).populate("toUserId","firstName email");
+        const connections2=await Request.find({toUserId:req.user._id,status:"accepted"}).populate("fromUserId","firstName email");
+        const allConnections=[...connections,...connections2];
+        if(allConnections.length===0) return res.json({success:false,message:"no connections found"});
+        res.json({success:true,connections:allConnections});
     }
     catch(error){
         res.status(500).json({success:false,message:"error in getting connections "+error});
@@ -71,7 +82,7 @@ router.get('/connections', userauth,async(req,res)=>{
 
 router.get('/feed',userauth,async (req,res)=>{
     try{
-        const connections=await Request.find({$or:[{fromUserId:req.user._id,status:"accepted"},{toUserId:req.user._id,status:"accepted"}]}).select("fromUserId toUserId").lean();
+        const connections=await Request.find({$or:[{fromUserId:req.user._id},{toUserId:req.user._id}]}).select("fromUserId toUserId").lean();
         const hideUsers=new Set();
         hideUsers.add(req.user._id.toString());
         connections.forEach((connection)=>{

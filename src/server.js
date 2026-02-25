@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+const cors = require("cors");
 const connectDB = require("./config/db");
 const { adminauth, userauth, fieldchecker } = require("./middlewares/auth");
 const User = require("./model/users");
@@ -12,6 +13,14 @@ const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 const port = process.env.PORT;
 
+// CORS Configuration - Allow frontend to access backend
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(cookieParser());
 //to parse json data in request body and allow any post request
 // to accept the incoming req body as json data and make it available in req.body for further processing in the route handlers
@@ -20,8 +29,8 @@ app.use(express.json());
 app.use(morgan("dev"));
 //to limit the number of requests from a single IP address to prevent brute force attacks and DDoS attacks
 const limiter = rateLimit({
-  windowMs: 2 * 60 * 1000, // 15 minutes
-  max: 10, // limit each IP to 100 requests per windowMs
+  windowMs: 1 * 60 * 1000, // 1 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
 
