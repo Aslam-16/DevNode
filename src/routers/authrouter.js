@@ -51,7 +51,7 @@ router.post("/login", async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
-    res.json({ success: true, message: "user logged in successfully"});
+    res.json({ success: true, message: "user logged in successfully", user: { name: user.firstName, email: user.email, id: user._id } });
   } catch (err) {
     res.status(500).json({ success: false, message: "error in user login " + err });
   }
