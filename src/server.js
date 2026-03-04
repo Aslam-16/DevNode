@@ -29,7 +29,7 @@ app.use(express.json());
 app.use(morgan("dev"));
 //to limit the number of requests from a single IP address to prevent brute force attacks and DDoS attacks
 const limiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minutes
+  windowMs: 10 * 60 * 1000, // 1 minutes
   max: 100, // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);

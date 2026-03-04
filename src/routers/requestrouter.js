@@ -82,6 +82,9 @@ router.get('/connections', userauth,async(req,res)=>{
 
 router.get('/feed',userauth,async (req,res)=>{
     try{
+        let page=parseInt(req.query.page)||1
+        let limit=parseInt(req.query.limit)||10
+        let skip=(page-1)*limit
         const connections=await Request.find({$or:[{fromUserId:req.user._id},{toUserId:req.user._id}]}).select("fromUserId toUserId").lean();
         const hideUsers=new Set();
         hideUsers.add(req.user._id.toString());
@@ -89,7 +92,7 @@ router.get('/feed',userauth,async (req,res)=>{
             hideUsers.add(connection.fromUserId.toString());
             hideUsers.add(connection.toUserId.toString());
         });
-        const feedUsers=await User.find({_id:{$nin:Array.from(hideUsers)}}).select("firstName email").lean();
+        const feedUsers=await User.find({_id:{$nin:Array.from(hideUsers)}}).select("firstName email").skip(skip).limit(limit);
         res.json({success:true,feed:feedUsers});
     }
     catch(error){
