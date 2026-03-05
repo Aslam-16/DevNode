@@ -24,6 +24,19 @@ const userauth=async(req,res,next)=>{
 
         next();
     }catch(err){
+        if (err.name === "TokenExpiredError") {
+          return res.status(401).json({
+            success: false,
+            message: "Token expired, please login again",
+          });
+        }
+
+        if (err.name === "JsonWebTokenError") {
+          return res.status(401).json({
+            success: false,
+            message: "Invalid token",
+          });
+        }
         res.status(500).json({success:false,message:"error in user authentication "+err});
     }
 }
