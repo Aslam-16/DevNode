@@ -16,7 +16,7 @@ const port = process.env.PORT;
 // CORS Configuration - Allow frontend to access backend
 app.use(cors({
   origin: 'http://localhost:5173',
-  credentials: true,
+    credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   //allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -28,11 +28,11 @@ app.use(express.json());
 //to log the incoming requests and their details in the console for debugging and monitoring purposes
 app.use(morgan("dev"));
 //to limit the number of requests from a single IP address to prevent brute force attacks and DDoS attacks
-const limiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 1 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
+// const limiter = rateLimit({
+//   windowMs: 10 * 60 * 1000, // 1 minutes
+//   max: 100, // limit each IP to 100 requests per windowMs
+// });
+// app.use(limiter);
 
 app.use("/", require("./routers/authrouter"));
 app.use("/", require("./routers/profilerouter"));

@@ -12,7 +12,7 @@ const userSchema=new mongoose.Schema({
     lastName:{
         type:String
     },
-    email:{
+    email:{ 
         type:String,
         required:[true,'email is required'],
         unique:[true,'email already exists'],

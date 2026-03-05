@@ -14,7 +14,7 @@ router.get("/getprofile", userauth, async (req, res) => {
 });
 
 //patch method will update only the fields provided in the request body and keep the other fields unchanged*
-router.patch("/updateuser",userauth, async (req, res) => {
+router.post("/updateuser",userauth, async (req, res) => {
   try {
     const {_id:id}=req.user;
     const  updateData  = req.body;
@@ -37,7 +37,7 @@ router.patch("/updateuser",userauth, async (req, res) => {
     const user = await User.findByIdAndUpdate(id, updateData, {
       returnDocument: "after",
       runValidators: true,
-    });
+    }).select("-password -__v"); ;
     console.log("kk", user);
     res.json({ success: true, message: "user updated successfully", user });
   } catch (err) {
