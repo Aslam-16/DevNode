@@ -51,7 +51,7 @@ router.post('/respondtorequest/:requestId/:status', userauth,async(req,res)=>{
 
 router.get('/connection/requestreceived', userauth,async(req,res)=>{
     try {
-        const requests=await Request.find({toUserId:req.user._id,status:"interested"}).populate("fromUserId","firstName email");
+        const requests=await Request.find({toUserId:req.user._id,status:"interested"}).populate("fromUserId","firstName lastName photourl skills gender age");
         res.json({success:true,requests});
     } catch (error) {
         res.status(500).json({success:false,message:"error in getting request received "+error});
@@ -69,11 +69,18 @@ router.get('/connection/requestsent', userauth,async(req,res)=>{
 
 router.get('/connections', userauth,async(req,res)=>{
     try{
-        const connections=await Request.find({fromUserId:req.user._id,status:"accepted"}).populate("toUserId","firstName email");
-        const connections2=await Request.find({toUserId:req.user._id,status:"accepted"}).populate("fromUserId","firstName email");
+        const connections=await Request.find({fromUserId:req.user._id,status:"accepted"}).populate("toUserId","firstName lastName gender age skills photourl");
+        const connections2=await Request.find({toUserId:req.user._id,status:"accepted"}).populate("fromUserId","firstName lastName gender age skills photourl");
         const allConnections=[...connections,...connections2];
         if(allConnections.length===0) return res.json({success:false,message:"no connections found"});
-        res.json({success:true,connections:allConnections});
+        let data=allConnections.map((connection)=>{
+            if(connection.toUserId.toString()==req.user._id.toString()){
+                return connection.fromUserId
+            }
+            else return connection.toUserId
+        }
+        )
+        res.json({success:true,connections:data});
     }
     catch(error){
         res.status(500).json({success:false,message:"error in getting connections "+error});
