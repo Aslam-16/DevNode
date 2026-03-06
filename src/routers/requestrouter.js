@@ -92,7 +92,7 @@ router.get('/feed',userauth,async (req,res)=>{
             hideUsers.add(connection.fromUserId.toString());
             hideUsers.add(connection.toUserId.toString());
         });
-        const feedUsers=await User.find({_id:{$nin:Array.from(hideUsers)}}).select("firstName email").skip(skip).limit(limit);
+        const feedUsers=await User.find({_id:{$nin:Array.from(hideUsers)}}).select("firstName lastname email photourl age gender skills _id").skip(skip).limit(limit);
         res.json({success:true,feed:feedUsers});
     }
     catch(error){
