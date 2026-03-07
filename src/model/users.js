@@ -48,6 +48,10 @@ const userSchema=new mongoose.Schema({
             message:'not a valid gender'
         }
     },
+    about:{
+        type:String,
+
+    },
     photourl:
     {
         type:String,

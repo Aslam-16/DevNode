@@ -21,8 +21,27 @@ router.post("/signup", async (req, res) => {
 
     const passwordhash = await bcrypt.hash(userdata.password, 10);
     const user = new User({ ...userdata, password: passwordhash });
-    await user.save();
-    res.json({ success: true, message: "user registered successfully" });
+    const savedUser = await user.save();
+        const token = await user.getJWT();
+        res.cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+        });
+        res.json({
+          success: true,
+          message: "user signed up successfully",
+          user: {
+            firstName: user.firstName,
+            email: user.email,
+            id: user._id,
+            lastName: user.lastName,
+            age: user.age,
+            gender: user.gender,
+            skills: user.skills,
+            photourl: user.photourl,
+          },
+        });
+
   } catch (err) {
     res.status(500).json({ success: false, message: "error in user registration " + err });
   }
